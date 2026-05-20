@@ -1,13 +1,15 @@
 # main.py
 import flet as ft
 import flet.canvas as cv
+import threading
+import time
 from core.ultimate_ttt import UltimateTTTEngine
 
 
 def main(page: ft.Page):
     page.title = "Classic Tic-Tac-Toe"
-    page.window.width = 420
-    page.window.height = 620
+    page.window.width = 440
+    page.window.height = 640
     page.window.resizable = False
     page.theme_mode = ft.ThemeMode.DARK
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
@@ -19,7 +21,6 @@ def main(page: ft.Page):
 
     status_label = ft.Text(value="Player X's Turn", size=18, weight=ft.FontWeight.BOLD, color="#48bb78")
 
-    # Interactive item selection selector radios
     piece_selector = ft.RadioGroup(
         content=ft.Row(
             controls=[
@@ -32,31 +33,41 @@ def main(page: ft.Page):
         value="X",
     )
 
-    # Isolated canvas tool layer (Stored globally but appended dynamically on win)
     line_canvas = cv.Canvas(
         width=286,
         height=286,
         shapes=[],
     )
 
-    # Pixel coordinate tracks for drawing paths
     LINE_COORDINATES = {
-        0: (15, 45, 271, 45),  # Row 0
-        1: (15, 143, 271, 143),  # Row 1
-        2: (15, 241, 271, 241),  # Row 2
-        3: (45, 15, 45, 271),  # Column 0
-        4: (143, 15, 143, 271),  # Column 1
-        5: (241, 15, 241, 271),  # Column 2
-        6: (25, 25, 261, 261),  # Diagonal 0
-        7: (261, 25, 25, 261),  # Diagonal 1
+        0: (15, 45, 271, 45),
+        1: (15, 143, 271, 143),
+        2: (15, 241, 271, 241),
+        3: (45, 15, 45, 271),
+        4: (143, 15, 143, 271),
+        5: (241, 15, 241, 271),
+        6: (25, 25, 261, 261),
+        7: (261, 25, 25, 261),
     }
 
     def handle_ttt_click(idx):
-        # Read active radio selection state parameter right before calling engine logic
+        if ttt_engine.winner:
+            return
+
         ttt_engine.current_player = piece_selector.value
+
         if ttt_engine.make_move(idx):
             piece_selector.value = ttt_engine.current_player
             update_ttt_ui()
+
+            # The Bulletproof Auto-Reset Trigger
+            if ttt_engine.winner:
+                def background_reset_worker():
+                    time.sleep(2.0)
+                    reset_ttt_match()
+
+                # Launch the countdown safely in the background
+                threading.Thread(target=background_reset_worker, daemon=True).start()
 
     def update_ttt_ui():
         for i in range(9):
@@ -74,7 +85,6 @@ def main(page: ft.Page):
                 cell.bgcolor = "#2d3748" if val is None else "#1a202c"
                 cell.opacity = 1.0
 
-        # FIX 1: Corrected y2 index map step and render canvas dynamically ONLY on match win
         if ttt_engine.winner and ttt_engine.winning_combo_idx is not None and len(line_canvas.shapes) == 0:
             coords = LINE_COORDINATES[ttt_engine.winning_combo_idx]
             line_color = "#63b3ed" if ttt_engine.winner == 'X' else "#fc8181"
@@ -82,7 +92,7 @@ def main(page: ft.Page):
             line_canvas.shapes.append(
                 cv.Line(
                     x1=coords[0], y1=coords[1],
-                    x2=coords[2], y2=coords[3],  # Fixed index coordinate assignment bug
+                    x2=coords[2], y2=coords[3],
                     paint=ft.Paint(
                         stroke_width=6,
                         color=line_color,
@@ -90,7 +100,6 @@ def main(page: ft.Page):
                     )
                 )
             )
-            # Securely overlay drawing layer only when interactions are disabled
             if line_canvas not in stacked_game_board.controls:
                 stacked_game_board.controls.append(line_canvas)
 
@@ -111,16 +120,15 @@ def main(page: ft.Page):
         ttt_engine.reset_game()
         piece_selector.value = "X"
         line_canvas.shapes.clear()
-        # Cleanly lift overlay sheet away from active interaction grid container bounds
+
         if line_canvas in stacked_game_board.controls:
             stacked_game_board.controls.remove(line_canvas)
+
         update_ttt_ui()
 
-    # FIX 2: Added Global Keyboard Integration Hook Matrix System
     def on_keyboard(e: ft.KeyboardEvent):
         key_input = e.key.upper() if e.key else ""
 
-        # Part A: Hotkey mapping for structural piece selection swaps
         if key_input == "X":
             piece_selector.value = "X"
             page.update()
@@ -130,7 +138,6 @@ def main(page: ft.Page):
             page.update()
             return
 
-        # Part B: Grid tile allocations matching numerical inputs 1-9
         key_coordinate_map = {
             "1": 0, "2": 1, "3": 2,
             "4": 3, "5": 4, "6": 5,
@@ -144,7 +151,6 @@ def main(page: ft.Page):
             if numpad_digit in key_coordinate_map:
                 handle_ttt_click(key_coordinate_map[numpad_digit])
 
-        # Part C: Quick match layout clearing
         if key_input == "R" or e.key == "Escape":
             reset_ttt_match()
 
@@ -180,11 +186,9 @@ def main(page: ft.Page):
 
     board_element = build_classic_board()
 
-    # Assembly frame stack layout container wrapper holding interactive elements safely
     stacked_game_board = ft.Stack(
         controls=[
-            ft.Container(content=board_element, alignment=ft.Alignment(0, 0))
-            # Notice line_canvas is NOT placed here on startup so clicks pass through flawlessly
+            board_element
         ],
         width=286,
         height=286
@@ -215,7 +219,6 @@ def main(page: ft.Page):
         )
     )
 
-    # Mount keyboard capture event listeners right before tracking instantiation loop completes
     page.on_keyboard_event = on_keyboard
     update_ttt_ui()
 
