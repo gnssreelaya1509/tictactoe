@@ -9,7 +9,7 @@ from core.ultimate_ttt import UltimateTTTEngine
 def main(page: ft.Page):
     page.title = "Classic Tic-Tac-Toe"
     page.window.width = 440
-    page.window.height = 640
+    page.window.height = 700  # Increased slightly to fit the new scoreboard nicely
     page.window.resizable = False
     page.theme_mode = ft.ThemeMode.DARK
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
@@ -20,6 +20,24 @@ def main(page: ft.Page):
     ttt_text_controls = {}
 
     status_label = ft.Text(value="Player X's Turn", size=18, weight=ft.FontWeight.BOLD, color="#48bb78")
+
+    # NEW Component: The live tracking scoreboard labels
+    score_x = ft.Text(value="X Wins: 0", size=14, weight=ft.FontWeight.BOLD, color="#63b3ed")
+    score_draws = ft.Text(value="Ties: 0", size=14, weight=ft.FontWeight.BOLD, color="#ecc94b")
+    score_o = ft.Text(value="O Wins: 0", size=14, weight=ft.FontWeight.BOLD, color="#fc8181")
+    # NEW Component: The container box that holds the scores together
+    scoreboard_panel = ft.Container(
+        content=ft.Row(
+            controls=[score_x, score_draws, score_o],
+            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+        ),
+        width=286,
+        # FIX: Bypassing the flet.padding module entirely by using a direct integer
+        padding=12,
+        bgcolor="#1a202c",
+        border_radius=8,
+        border=ft.Border.all(1, "#2d3748")
+    )
 
     piece_selector = ft.RadioGroup(
         content=ft.Row(
@@ -60,16 +78,15 @@ def main(page: ft.Page):
             piece_selector.value = ttt_engine.current_player
             update_ttt_ui()
 
-            # The Bulletproof Auto-Reset Trigger
             if ttt_engine.winner:
                 def background_reset_worker():
                     time.sleep(2.0)
                     reset_ttt_match()
 
-                # Launch the countdown safely in the background
                 threading.Thread(target=background_reset_worker, daemon=True).start()
 
     def update_ttt_ui():
+        # Sync the visual grid
         for i in range(9):
             cell = ttt_buttons[i]
             txt_ctrl = ttt_text_controls[i]
@@ -85,6 +102,7 @@ def main(page: ft.Page):
                 cell.bgcolor = "#2d3748" if val is None else "#1a202c"
                 cell.opacity = 1.0
 
+        # Draw the winning line
         if ttt_engine.winner and ttt_engine.winning_combo_idx is not None and len(line_canvas.shapes) == 0:
             coords = LINE_COORDINATES[ttt_engine.winning_combo_idx]
             line_color = "#63b3ed" if ttt_engine.winner == 'X' else "#fc8181"
@@ -103,9 +121,10 @@ def main(page: ft.Page):
             if line_canvas not in stacked_game_board.controls:
                 stacked_game_board.controls.append(line_canvas)
 
+        # Sync the Header Status
         if ttt_engine.winner:
             if ttt_engine.winner == "Draw":
-                status_label.value = "Game Over! It's a Draw!"
+                status_label.value = "Game Over! It's a Tie!"
                 status_label.color = "#ecc94b"
             else:
                 status_label.value = f"Victory! Player {ttt_engine.winner} Wins!"
@@ -113,6 +132,11 @@ def main(page: ft.Page):
         else:
             status_label.value = f"Player {ttt_engine.current_player}'s Turn"
             status_label.color = "#48bb78" if ttt_engine.current_player == 'X' else "#ed8936"
+
+        # NEW: Sync the live scoreboard data directly from the engine variables
+        score_x.value = f"X Wins: {ttt_engine.x_wins}"
+        score_draws.value = f"Ties: {ttt_engine.draws}"
+        score_o.value = f"O Wins: {ttt_engine.o_wins}"
 
         page.update()
 
@@ -200,8 +224,10 @@ def main(page: ft.Page):
                 controls=[
                     status_label,
                     ft.Divider(height=10, color="transparent"),
+                    scoreboard_panel,  # NEW: Inserted the scoreboard into the main UI layout
+                    ft.Divider(height=10, color="transparent"),
                     piece_selector,
-                    ft.Divider(height=15, color="transparent"),
+                    ft.Divider(height=10, color="transparent"),
                     stacked_game_board,
                     ft.Divider(height=25, color="transparent"),
                     ft.ElevatedButton(

@@ -4,8 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ab6d2881-f1cc-4e47-b119-7d49b41bba58" name="Changes" comment="Deployment: Activating GitHub Pages">
+    <list default="true" id="ab6d2881-f1cc-4e47-b119-7d49b41bba58" name="Changes" comment="git add .&#10;git commit -m &quot;Fixed auto-reset threading loop&quot;&#10;git push">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/ultimate_ttt.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/ultimate_ttt.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -104,7 +105,15 @@
       <option name="project" value="LOCAL" />
       <updated>1779261140852</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="git add .&#10;git commit -m &quot;Fixed auto-reset threading loop&quot;&#10;git push">
+      <option name="closed" value="true" />
+      <created>1779277297032</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1779277297032</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -130,6 +139,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Deployment: Activating GitHub Pages" />
-    <option name="LAST_COMMIT_MESSAGE" value="Deployment: Activating GitHub Pages" />
+    <MESSAGE value="git add .&#10;git commit -m &quot;Fixed auto-reset threading loop&quot;&#10;git push" />
+    <option name="LAST_COMMIT_MESSAGE" value="git add .&#10;git commit -m &quot;Fixed auto-reset threading loop&quot;&#10;git push" />
   </component>
 </project>
